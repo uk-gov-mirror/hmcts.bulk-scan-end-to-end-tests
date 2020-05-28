@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ExampleTest {
-    protected static TestConfiguration config = new TestConfiguration();
+    private static TestConfiguration config = new TestConfiguration();
 
     @Test
     public void testConfig() {
