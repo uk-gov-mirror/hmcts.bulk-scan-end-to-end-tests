@@ -1,16 +1,19 @@
 package uk.gov.hmcts.reform.bulkscan.endtoendtests;
 
-import com.typesafe.config.ConfigFactory;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.bulkscan.endtoendtests.config.TestConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ExampleTest {
-    private static final String TEST_NAME = ConfigFactory.load().getString("test-name");
+    protected static TestConfiguration config = new TestConfiguration();
 
     @Test
     public void testConfig() {
-        assertEquals(TEST_NAME, "e2etests", "Config loaded");
+        assertEquals(config.storageAccountName, "reformscanaat", "Storage Account name loaded from Keyvault");
+        assertNotNull(config.storageAccountKey, "Storage Account Key is not null");
+        assertNotNull(config.storageAccountUrl, "Storage Account URL is not null");
     }
 
 }

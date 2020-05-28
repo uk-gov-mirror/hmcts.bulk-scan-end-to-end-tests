@@ -7,6 +7,22 @@ properties([
   pipelineTriggers([cron('*/30 * * * *')])
 ])
 
+def combinedSecrets = [
+  'reform-scan-aat': [
+    secret('storage-account-secondary-key', 'TEST_STORAGE_ACCOUNT_KEY'),
+    secret('storage-account-name', 'TEST_STORAGE_ACCOUNT_NAME'),
+  ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar
+  ]
+}
+
 def type = "java"
 def product = "bulk-scan"
 def component = "end-to-end-tests"
@@ -14,6 +30,9 @@ def component = "end-to-end-tests"
 GradleBuilder builder = new GradleBuilder(this, product)
 
 withNightlyPipeline(type, product, component) {
+  loadVaultSecrets(combinedSecrets)
+  env.TEST_STORAGE_ACCOUNT_URL = 'https://reformscanaat.blob.core.windows.net'
+
   enableFullFunctionalTest()
 
   after('fullFunctionalTest') {
