@@ -22,7 +22,8 @@ public final class SasTokenRetriever {
             .statusCode(200)
             .extract()
             .body()
-            .toString();
+            .jsonPath()
+            .getString("sas_token");
     }
 
     private SasTokenRetriever() {
