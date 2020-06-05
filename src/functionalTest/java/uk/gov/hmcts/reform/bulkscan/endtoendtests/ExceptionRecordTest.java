@@ -7,7 +7,6 @@ import uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.StorageHelper;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.ZipFileHelper;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeResult;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeStatusChecker.getZipFileStatus;
 
@@ -15,11 +14,7 @@ public class ExceptionRecordTest {
 
     @Test
     public void should_upload_blob_and_create_exception_record() throws Exception {
-        var zipArchive = ZipFileHelper.createZipArchive(
-            singletonList("test-data/exception/1111002.pdf"),
-            "test-data/exception/metadata.json",
-            Container.BULKSCAN
-        );
+        var zipArchive = ZipFileHelper.createZipArchive("test-data/exception", Container.BULKSCAN);
 
         StorageHelper.uploadZipFile(Container.BULKSCAN, zipArchive);
 
@@ -32,8 +27,7 @@ public class ExceptionRecordTest {
         throws Exception {
 
         var zipArchive = ZipFileHelper.createZipArchive(
-            singletonList("test-data/supplementary_evidence_with_ocr/1111002.pdf"),
-            "test-data/supplementary_evidence_with_ocr/metadata.json",
+            "test-data/supplementary_evidence_with_ocr",
             Container.BULKSCAN
         );
 
@@ -50,11 +44,7 @@ public class ExceptionRecordTest {
     public void should_dispatch_blob_and_create_exception_record_for_supplementary_evidence()
         throws Exception {
 
-        var zipArchive = ZipFileHelper.createZipArchive(
-            singletonList("test-data/supplementary_evidence/1111002.pdf"),
-            "test-data/supplementary_evidence/metadata.json",
-            Container.BULKSCAN
-        );
+        var zipArchive = ZipFileHelper.createZipArchive("test-data/supplementary_evidence", Container.BULKSCAN);
 
         StorageHelper.uploadZipFile(Container.BULKSCAN, zipArchive);
 
@@ -70,11 +60,7 @@ public class ExceptionRecordTest {
     public void should_dispatch_blob_and_create_exception_record_for_new_application_classification()
         throws Exception {
 
-        var zipArchive = ZipFileHelper.createZipArchive(
-            singletonList("test-data/new_application/1111002.pdf"),
-            "test-data/new_application/metadata.json",
-            Container.BULKSCAN
-        );
+        var zipArchive = ZipFileHelper.createZipArchive("test-data/new_application", Container.BULKSCAN);
 
         StorageHelper.uploadZipFile(Container.BULKSCAN, zipArchive);
 
