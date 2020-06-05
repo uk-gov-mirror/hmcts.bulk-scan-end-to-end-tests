@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import static com.jayway.awaitility.Awaitility.await;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeStatusChecker.isEnvelopeCompletedWithCcdChanges;
+import static uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeStatusChecker.isEnvelopeCompletedWithCcdAction;
 
 public final class Await {
 
@@ -21,7 +21,7 @@ public final class Await {
         await("File " + zipFileName + " should be completed in processor")
             .atMost(100, SECONDS)
             .pollInterval(1, SECONDS)
-            .until(() -> isEnvelopeCompletedWithCcdChanges(zipFileName));
+            .until(() -> isEnvelopeCompletedWithCcdAction(zipFileName));
     }
 
     private Await() {
