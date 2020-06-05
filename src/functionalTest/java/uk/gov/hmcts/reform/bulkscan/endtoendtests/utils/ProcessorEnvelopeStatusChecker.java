@@ -32,7 +32,7 @@ public final class ProcessorEnvelopeStatusChecker {
         }
     }
 
-    public static boolean isEnvelopeCompletedWithCcdChanges(String fileName) {
+    public static boolean isEnvelopeCompletedWithCcdAction(String fileName) {
         JsonPath jsonPath = getZipFileStatusResponse(fileName).jsonPath();
         return !jsonPath.getList("envelopes").isEmpty()
             && !jsonPath.getString("envelopes[0].ccd_id").isBlank();
