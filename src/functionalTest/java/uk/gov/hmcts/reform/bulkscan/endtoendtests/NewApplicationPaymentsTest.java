@@ -21,17 +21,8 @@ public class NewApplicationPaymentsTest {
         Await.envelopeDispatched(zipArchive.fileName);
         Await.envelopeCompleted(zipArchive.fileName);
 
-        //get the process result again and assert
-        assertCompletedProcessorResult(zipArchive.fileName);
-    }
-
-    private void assertCompletedProcessorResult(String zipFileName) {
-        assertThat(getZipFileStatus(zipFileName)).hasValueSatisfying(env -> {
-            assertThat(env.ccdId).isNotBlank();
-            assertThat(env.container).isEqualTo(Container.BULKSCAN.name);
-            assertThat(env.envelopeCcdAction).isEqualTo("EXCEPTION_RECORD");
-            assertThat(env.id).isNotBlank();
-            assertThat(env.status).isEqualTo("COMPLETED");
-        });
+        assertThat(getZipFileStatus(zipArchive.fileName))
+            .map(status -> status.envelopeCcdAction)
+            .isEqualTo("EXCEPTION_RECORD");
     }
 }
