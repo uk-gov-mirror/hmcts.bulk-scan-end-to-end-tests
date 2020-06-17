@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.bulkscan.endtoendtests.model.Classification;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeStatusChecker.getZipFileStatus;
 
-public class ExceptionRecordTest {
+public class JourneyClassificationsTest {
 
     @ParameterizedTest
     @EnumSource(Classification.class)
