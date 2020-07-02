@@ -1,13 +1,12 @@
 package uk.gov.hmcts.reform.bulkscan.endtoendtests.utils;
 
-import com.typesafe.config.ConfigFactory;
 import io.restassured.RestAssured;
 import org.apache.http.HttpHeaders;
 import uk.gov.hmcts.reform.logging.appinsights.SyntheticHeaders;
 
-public final class SasTokenRetriever {
+import static uk.gov.hmcts.reform.bulkscan.endtoendtests.config.TestConfig.BLOB_ROUTER_URL;
 
-    private static final String blobRouterUrl = ConfigFactory.load().getString("blob-router-url");
+public final class SasTokenRetriever {
 
     /**
      * Retrieves SAS token for given service/jurisdiction.
@@ -16,7 +15,7 @@ public final class SasTokenRetriever {
         return RestAssured
             .given()
             .relaxedHTTPSValidation()
-            .baseUri(blobRouterUrl)
+            .baseUri(BLOB_ROUTER_URL)
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
             .header(SyntheticHeaders.SYNTHETIC_TEST_SOURCE, "Bulk Scan E2E test")
             .get("/token/" + jurisdiction)
