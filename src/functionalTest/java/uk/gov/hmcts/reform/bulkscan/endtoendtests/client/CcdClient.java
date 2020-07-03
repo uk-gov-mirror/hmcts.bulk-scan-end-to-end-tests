@@ -143,7 +143,7 @@ public class CcdClient {
             )
             .then()
             .assertThat()
-            .statusCode(HttpStatus.OK.value())
+            .statusCode(HttpStatus.CREATED.value())
             .extract()
             .as(CaseDetails.class);
     }
