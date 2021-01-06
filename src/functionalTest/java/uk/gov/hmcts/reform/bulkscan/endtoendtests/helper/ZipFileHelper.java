@@ -39,10 +39,20 @@ public final class ZipFileHelper {
         Container container
     ) throws Exception {
         var ocrData = OcrDataEncoder.encodeDefaultOcrData(container);
-        return createZipArchive(dirName, container, "", ocrData);
+        return buildZipArchive(dirName, container, "", ocrData);
     }
 
     public static ZipArchive createZipArchive(
+        String dirName,
+        Container container,
+        String caseNumber,
+        String ocrDataFileName
+    ) throws Exception {
+        var ocrData = OcrDataEncoder.encodeOcrData(ocrDataFileName);
+        return buildZipArchive(dirName, container, caseNumber, ocrData);
+    }
+
+    private static ZipArchive buildZipArchive(
         String dirName,
         Container container,
         String caseNumber,
@@ -53,7 +63,7 @@ public final class ZipFileHelper {
                 .map(e -> dirName + "/" + e.getName())
                 .collect(toList());
 
-        return createZipArchive(
+        return buildZipArchive(
             files.stream().filter(f -> f.endsWith(".pdf")).collect(toList()),
             files.stream().filter(f -> f.endsWith(".json")).collect(toList()).get(0),
             container,
@@ -62,7 +72,7 @@ public final class ZipFileHelper {
         );
     }
 
-    private static ZipArchive createZipArchive(
+    private static ZipArchive buildZipArchive(
         List<String> pdfFiles,
         String metadataFile,
         Container container,
