@@ -5,14 +5,16 @@ import uk.gov.hmcts.reform.bulkscan.endtoendtests.client.CcdClient;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.Await;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.StorageHelper;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.ZipFileHelper;
+import uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.EnvelopeAction;
+import uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeResult;
 
-import java.io.IOException;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.Container.BULKSCAN_AUTO;
 import static uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeStatusChecker.getZipFileStatus;
 
+@SuppressWarnings("unchecked")
 public class BulkScanAutoUpdateTest {
 
     @Test
@@ -26,10 +28,19 @@ public class BulkScanAutoUpdateTest {
         Await.envelopeDispatched(zipArchiveCreate.fileName);
         Await.envelopeCompleted(zipArchiveCreate.fileName);
 
-        assertCompletedProcessorResult(zipArchiveCreate.fileName, "CASE_CREATED");
+        ProcessorEnvelopeResult envCreate = getZipFileStatus(zipArchiveCreate.fileName).get();
+        assertCompletedProcessorResult(envCreate, "CASE_CREATED");
 
         String ccdId = getZipFileStatus(zipArchiveCreate.fileName).get().ccdId;
-        assertCaseFields(ccdId, "Name", "Surname", "e2e@test.dev");
+        Map<String, Object> caseDataCreated =
+            CcdClient.getCaseData(ccdId, BULKSCAN_AUTO.idamUserName, BULKSCAN_AUTO.idamPassword);
+        assertCaseFields(caseDataCreated, "Name", "Surname", "e2e@test.dev");
+        assertCaseEnvelopes(
+            caseDataCreated,
+            new EnvelopeAction[]{
+                new EnvelopeAction(envCreate.id, "create")
+            }
+        );
 
         var zipArchiveUpdate = ZipFileHelper.createZipArchive(
             "test-data/auto-update",
@@ -43,31 +54,54 @@ public class BulkScanAutoUpdateTest {
         Await.envelopeDispatched(zipArchiveUpdate.fileName);
         Await.envelopeCompleted(zipArchiveUpdate.fileName);
 
-        assertCompletedProcessorResult(zipArchiveUpdate.fileName, "AUTO_UPDATED_CASE");
+        ProcessorEnvelopeResult envUpdate = getZipFileStatus(zipArchiveUpdate.fileName).get();
+        assertCompletedProcessorResult(envUpdate, "AUTO_UPDATED_CASE");
 
-        assertCaseFields(ccdId, "Name1", "Surname1", "e2e1@test.dev");
+        Map<String, Object> caseDataUpdated =
+            CcdClient.getCaseData(ccdId, BULKSCAN_AUTO.idamUserName, BULKSCAN_AUTO.idamPassword);
+        assertCaseFields(caseDataUpdated, "Name1", "Surname1", "e2e1@test.dev");
+        assertCaseEnvelopes(
+            caseDataCreated,
+            new EnvelopeAction[]{
+                new EnvelopeAction(envCreate.id, "create"),
+                new EnvelopeAction(envUpdate.id, "update")
+            }
+        );
     }
 
-    private void assertCompletedProcessorResult(String zipFileName, String ccdAction) {
-        assertThat(getZipFileStatus(zipFileName)).hasValueSatisfying(env -> {
-            assertThat(env.ccdId).isNotBlank();
-            assertThat(env.container).isEqualTo(BULKSCAN_AUTO.name);
-            assertThat(env.envelopeCcdAction).isEqualTo(ccdAction);
-            assertThat(env.id).isNotBlank();
-            assertThat(env.status).isEqualTo("COMPLETED");
-        });
+    private void assertCompletedProcessorResult(
+        ProcessorEnvelopeResult env,
+        String ccdAction
+    ) {
+        assertThat(env.ccdId).isNotBlank();
+        assertThat(env.container).isEqualTo(BULKSCAN_AUTO.name);
+        assertThat(env.envelopeCcdAction).isEqualTo(ccdAction);
+        assertThat(env.id).isNotBlank();
+        assertThat(env.status).isEqualTo("COMPLETED");
     }
 
     private void assertCaseFields(
-        String ccdId,
+        Map<String, Object> caseDetails,
         String name,
         String surname,
         String email
-    ) throws IOException {
-        Map<String, Object> caseDataUpdated =
-            CcdClient.getCaseData(ccdId, BULKSCAN_AUTO.idamUserName, BULKSCAN_AUTO.idamPassword);
-        assertThat(caseDataUpdated.get("firstName")).isEqualTo(name);
-        assertThat(caseDataUpdated.get("lastName")).isEqualTo(surname);
-        assertThat(caseDataUpdated.get("email")).isEqualTo(email);
+    ) {
+        assertThat(caseDetails.get("firstName")).isEqualTo(name);
+        assertThat(caseDetails.get("lastName")).isEqualTo(surname);
+        assertThat(caseDetails.get("email")).isEqualTo(email);
+    }
+
+    private void assertCaseEnvelopes(
+        Map<String, Object> caseDetails,
+        EnvelopeAction[] envelopeActions
+    ) {
+        Map<String, Object>[] envelopes =
+            (Map<String, Object>[]) caseDetails.get("bulkScanEnvelopes");
+        assertThat(envelopes.length).isEqualTo(envelopeActions.length);
+        for (int i = 0; i < envelopeActions.length; i++) {
+            Map<String, String> values = (Map<String, String>) envelopes[i].get("value");
+            assertThat(values.get("id")).isEqualTo(envelopeActions[i].envelopeId);
+            assertThat(values.get("action")).isEqualTo(envelopeActions[i].action);
+        }
     }
 }
