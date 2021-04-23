@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.Await;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.StorageHelper;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.ZipFileHelper;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.model.Classification;
+import uk.gov.hmcts.reform.bulkscan.endtoendtests.model.EnvelopeCcdAction;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.EnvelopeAction;
 import uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeResult;
 
@@ -15,6 +16,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.bulkscan.endtoendtests.client.CcdClient.assertCaseEnvelopes;
 import static uk.gov.hmcts.reform.bulkscan.endtoendtests.helper.Container.BULKSCAN_AUTO;
+import static uk.gov.hmcts.reform.bulkscan.endtoendtests.model.EnvelopeCcdAction.AUTO_ATTACHED_TO_CASE;
+import static uk.gov.hmcts.reform.bulkscan.endtoendtests.model.EnvelopeCcdAction.AUTO_CREATED_CASE;
 import static uk.gov.hmcts.reform.bulkscan.endtoendtests.utils.ProcessorEnvelopeStatusChecker.getZipFileStatus;
 
 public class BulkScanAutoNewApplicationTest {
@@ -31,7 +34,7 @@ public class BulkScanAutoNewApplicationTest {
         Await.envelopeCompleted(zipArchive.fileName);
 
         //get the process result again and assert
-        assertCompletedAutoCaseResult(getZipFileStatus(zipArchive.fileName));
+        assertCompletedAutoCaseResult(getZipFileStatus(zipArchive.fileName), AUTO_CREATED_CASE);
     }
 
     @Test
@@ -48,7 +51,7 @@ public class BulkScanAutoNewApplicationTest {
         //get the process result again and assert
         Optional<ProcessorEnvelopeResult> optEnvelopeResult
             = getZipFileStatus(zipArchiveCase.fileName);
-        assertCompletedAutoCaseResult(optEnvelopeResult);
+        assertCompletedAutoCaseResult(optEnvelopeResult, AUTO_CREATED_CASE);
         var envCreate = optEnvelopeResult.get();
         Map<String, Object> caseDataCreated =
             CcdClient.getCaseData(envCreate.ccdId, BULKSCAN_AUTO.idamUserName, BULKSCAN_AUTO.idamPassword);
@@ -72,7 +75,7 @@ public class BulkScanAutoNewApplicationTest {
 
         optEnvelopeResult
             = getZipFileStatus(zipArchiveSupp.fileName);
-        assertCompletedAutoCaseResult(optEnvelopeResult);
+        assertCompletedAutoCaseResult(optEnvelopeResult, AUTO_ATTACHED_TO_CASE);
         envCreate = optEnvelopeResult.get();
         caseDataCreated =
             CcdClient.getCaseData(envCreate.ccdId, BULKSCAN_AUTO.idamUserName, BULKSCAN_AUTO.idamPassword);
@@ -97,17 +100,20 @@ public class BulkScanAutoNewApplicationTest {
         assertThat(getZipFileStatus(zipFileName)).hasValueSatisfying(env -> {
             assertThat(env.ccdId).isEqualTo(ccdId);
             assertThat(env.container).isEqualTo(BULKSCAN_AUTO.name);
-            assertThat(env.envelopeCcdAction).isEqualTo("AUTO_ATTACHED_TO_CASE");
+            assertThat(env.envelopeCcdAction).isEqualTo(AUTO_ATTACHED_TO_CASE.toString());
             assertThat(env.id).isNotBlank();
             assertThat(env.status).isEqualTo("COMPLETED");
         });
     }
 
-    private void assertCompletedAutoCaseResult(Optional<ProcessorEnvelopeResult> optEnv) {
+    private void assertCompletedAutoCaseResult(
+        Optional<ProcessorEnvelopeResult> optEnv,
+        EnvelopeCcdAction ccdAction
+    ) {
         assertThat(optEnv).hasValueSatisfying(env -> {
             assertThat(env.ccdId).isNotBlank();
             assertThat(env.container).isEqualTo(BULKSCAN_AUTO.name);
-            assertThat(env.envelopeCcdAction).isEqualTo("AUTO_CREATED_CASE");
+            assertThat(env.envelopeCcdAction).isEqualTo(ccdAction.toString());
             assertThat(env.id).isNotBlank();
             assertThat(env.status).isEqualTo("COMPLETED");
         });
